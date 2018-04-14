@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Algebraic Structure</title>
+    <link rel="stylesheet" href="../css/chapter.css" />
+    <link rel="stylesheet" href="../css/syntax.css" />
+  </head>
+  <body>
+    <main>
+
+      <nav></nav>
+
+      <article>
+        <section class="draft-notice">Draft of Haskellization. All rights reserved.</section>
+        <section><h1>Algebraic Structure</h1></section>
+        <section><p>In mathematics, an <em>algebraic structure</em> is defined by three things:</p>
+<ul>
+<li>a set</li>
+<li>one or more operations on the elements of the set</li>
+<li>a list of laws that the operations must follow</li>
+</ul>
+<p>For example, all rational numbers (the set), together with the operation <code>+</code> (addition) and <code>⋅</code> (multiplication), and the laws:</p>
+<ul>
+<li><code>x + y = y + x</code></li>
+<li><code>x + 0 = x</code></li>
+<li><code>x(y + z) = xy + xz</code></li>
+<li>… seven other laws that nobody cares about</li>
+</ul>
+<p>forms an algebraic structure called <em>field</em>.</p>
+<p>You learned how to do addition and multiplication on rational numbers before knowing that they form a field. The point is: the term “algebraic structure” itself is not interesting, (at least not to us programmers), it’s just a terminology. What’s interesting is how the underlying operations work and how they relates to each other by the laws.</p>
+<p>The reason these structures exist is that, many different things have the same underlying structure, it’s better to make an abstraction and to study them once and for all, rather than studying them separately and reinventing the same wheel again and again.</p>
+<p>There is no doubt that these abstractions will introduce a barrier to beginners: you must learn the concepts before you can use them. But this is definitely worth it, once you learned the concepts and used it a few times, the next time you see something similar, you will have a rough guess about how things should work - without looking into the documentations. Don’t worry if all of these sound blurry, after the <a href="../project-optparse-applicative">project optparse-applicative</a>, you will see what I mean.</p>
+<p>Algebraic structures in Haskell are represented via tyepclasses, such as semigroups, monoids and mondas. However, unlike types, the laws that the algebraic structure should obey is not enforced by GHC, it’s the implementor’s job to make sure that his implementation satisfies those laws.</p>
+<p>Tip: if you have trouble understanding a definition, don’t stuck on it for too much time, do some examples and write some concrete codes, then come back to it, you will have a easier time.</p></section>
+      </article>
+
+    </main>
+  </body>
+</html>
