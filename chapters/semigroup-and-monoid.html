@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Semigroup and Monoid</title>
+    <link rel="stylesheet" href="../css/chapter.css" />
+    <link rel="stylesheet" href="../css/syntax.css" />
+  </head>
+  <body>
+    <main>
+
+      <nav><ul>
+<li><a href="#monoid">Monoid</a><ul>
+<li><a href="#definition-of-monoid">Definition</a></li>
+<li><a href="#examples-of-monoid">Examples</a></li>
+<li><a href="#complete-definition-of-monoid">Complete Definition</a></li>
+<li><a href="#implement-a-monoid">Implement a Monoid</a></li>
+<li><a href="#other-functions-of-monoid">Other Functions</a></li>
+</ul></li>
+<li><a href="#semigroup">Semigroup</a><ul>
+<li><a href="#definition-of-semigroup">Definition</a></li>
+<li><a href="#examples-of-semigroup">Examples</a></li>
+<li><a href="#complete-definition-of-semigroup">Complete Definition</a></li>
+<li><a href="#implement-a-semigroup">Implement a Semigroup</a></li>
+<li><a href="#other-functions-of-semigroup">Other Functions</a></li>
+</ul></li>
+<li><a href="#imperfections">Imperfections</a></li>
+</ul></nav>
+
+      <article>
+        <section class="draft-notice">Draft of Haskellization. All rights reserved.</section>
+        <section><h1>Semigroup and Monoid</h1></section>
+        <section><h3 id="monoid">Monoid</h3>
+<p>Monoid: types with an associative binary operation that has an identity.</p>
+<p>For example, strings, with the associative binary operation being <code>++</code>, and identity being <code>&quot;&quot;</code> (the empty string), forms a monoid.</p>
+<h4 id="definition-of-monoid">Definition</h4>
+<p>Typeclass <code>Monoid</code> is defined in <code>Data.Monoid</code>, package <em>base</em>, its minimal complete definition is:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">class</span> <span class="dt">Monoid</span> a <span class="kw">where</span></a>
+<a class="sourceLine" id="cb1-2" data-line-number="2">  <span class="co">-- Combine two a's to get another a</span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="ot">  mappend ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a</a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">  <span class="co">-- This is the identity of mappend</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="ot">  mempty  ::</span> a</a></code></pre></div>
+<p><code>Data.Monoid</code> also defines <code>&lt;&gt;</code> to be an infix version of <code>mappend</code>, we will use the infix version for clarity.</p>
+<p>An instance of monoid must satisfies these laws:</p>
+<ul>
+<li><p><code>mempty &lt;&gt; x = x</code></p>
+<p>This is often referred as: <code>mempty</code> is the left identity of <code>&lt;&gt;</code>.</p></li>
+<li><p>x &lt;&gt; mempty = x</p>
+<p><code>mempty</code> is also the right identity of <code>&lt;&gt;</code>.</p></li>
+<li><p><code>x &lt;&gt; (y &lt;&gt; z) = &lt;&gt; (x &lt;&gt; y) &lt;&gt; z</code></p>
+<p><code>&lt;&gt;</code> is associative.</p></li>
+</ul>
+<p>Let’s verify that strings, with operation being <code>++</code>, and <code>mempty</code> being <code>&quot;&quot;</code>, do form a monoid.</p>
+<p>For each <code>a</code>, <code>b</code> and <code>c</code> of type <code>String</code>:</p>
+<ul>
+<li><p>Closed: <code>a ++ b</code> is also a string</p></li>
+<li><p>Left identity: <code>&quot;&quot; ++ a == a</code></p></li>
+<li><p>Right identity: <code>a ++ &quot;&quot; == a</code></p></li>
+<li><p>Associativity: <code>a ++ (b ++ c) == (a ++ b) ++ c</code></p></li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="fu">:</span>m <span class="fu">+</span><span class="dt">Data.Monoid</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">and [ <span class="st">&quot;mon&quot;</span> <span class="fu">&lt;&gt;</span> <span class="st">&quot;oid&quot;</span>         <span class="fu">==</span> <span class="st">&quot;mon&quot;</span> <span class="fu">++</span> <span class="st">&quot;oid&quot;</span></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">    , <span class="st">&quot;monoid&quot;</span> <span class="fu">&lt;&gt;</span> mempty     <span class="fu">==</span> <span class="st">&quot;monoid&quot;</span></a>
+<a class="sourceLine" id="cb2-5" data-line-number="5">    , <span class="st">&quot;mo&quot;</span> <span class="fu">&lt;&gt;</span> (<span class="st">&quot;no&quot;</span> <span class="fu">&lt;&gt;</span> <span class="st">&quot;id&quot;</span>) <span class="fu">==</span> <span class="st">&quot;monoid&quot;</span></a>
+<a class="sourceLine" id="cb2-6" data-line-number="6">    , (<span class="st">&quot;mo&quot;</span> <span class="fu">&lt;&gt;</span> <span class="st">&quot;no&quot;</span>) <span class="fu">&lt;&gt;</span> <span class="st">&quot;id&quot;</span> <span class="fu">==</span> <span class="st">&quot;monoid&quot;</span></a>
+<a class="sourceLine" id="cb2-7" data-line-number="7">    ]</a></code></pre></div>
+<h4 id="examples-of-monoid">Examples</h4>
+<p>For all data type <code>a</code>, <code>[a]</code>, together with list appending, and with empty list <code>[]</code> being the identity, forms a monoid, as we can verify:</p>
+<p>For a given type <code>a</code>, for all <code>xs</code>, <code>ys</code>, <code>zs</code> of type <code>[a]</code>:</p>
+<ul>
+<li>Closed: <code>xs ++ ys</code> is also a list of <code>a</code>s</li>
+<li>Left identity: <code>[] ++ xs = xs</code></li>
+<li>Right identity: <code>xs ++ [] = xs</code></li>
+<li>Associativity: <code>xs ++ (ys ++ zs) = (xs ++ ys) ++ zs</code></li>
+</ul>
+<p>Actually, the confusing name <code>mempty</code> and <code>mappend</code> comes from this instance, with <code>mempty</code> referring to <code>[]</code>, and <code>mappend</code> referring to <code>++</code>, which is known as <a href="https://hackage.haskell.org/package/base-4.10.1.0/docs/Prelude.html#v:-43--43-">appending</a> in Haskell.</p>
+<p>For all data type <code>a</code>, if <code>a</code> is an instance of monoid, then so does <code>Maybe a</code>, as defined by:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="kw">instance</span> <span class="dt">Monoid</span> a <span class="ot">=&gt;</span> <span class="dt">Monoid</span> (<span class="dt">Maybe</span> a) <span class="kw">where</span></a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">  mempty <span class="fu">=</span> <span class="dt">Nothing</span></a>
+<a class="sourceLine" id="cb3-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">  <span class="dt">Nothing</span> <span class="ot">`mappend`</span> m <span class="fu">=</span> m</a>
+<a class="sourceLine" id="cb3-5" data-line-number="5">  m <span class="ot">`mappend`</span> <span class="dt">Nothing</span> <span class="fu">=</span> m</a>
+<a class="sourceLine" id="cb3-6" data-line-number="6">  <span class="dt">Just</span> m1 <span class="ot">`mappend`</span> <span class="dt">Just</span> m2 <span class="fu">=</span> <span class="dt">Just</span> (m1 <span class="ot">`mappend`</span> m2)</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="fu">:</span>m <span class="fu">+</span><span class="dt">Data.Monoid</span></a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3">and [ <span class="dt">Just</span> [<span class="dv">1</span>] <span class="fu">&lt;&gt;</span> <span class="dt">Nothing</span>           <span class="fu">==</span> <span class="dt">Just</span> [<span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4">    , <span class="dt">Just</span> [<span class="dv">1</span>] <span class="fu">&lt;&gt;</span> mempty            <span class="fu">==</span> <span class="dt">Just</span> [<span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb4-5" data-line-number="5">    , <span class="dt">Just</span> [<span class="dv">1</span>, <span class="dv">2</span>] <span class="fu">&lt;&gt;</span> <span class="dt">Just</span> [<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>] <span class="fu">==</span> <span class="dt">Just</span> [<span class="dv">1</span> <span class="fu">..</span> <span class="dv">5</span>]</a>
+<a class="sourceLine" id="cb4-6" data-line-number="6">    , <span class="dt">Nothing</span> <span class="fu">&lt;&gt;</span> <span class="dt">Nothing</span>            <span class="fu">==</span> <span class="dt">Nothing</span></a>
+<a class="sourceLine" id="cb4-7" data-line-number="7">    ]</a></code></pre></div>
+<h4 id="complete-definition-of-monoid">Complete Definition</h4>
+<p>A typeclass can also provide default implementations for some of its functions, usually there is no need to override the default implementation, but you can if you want, for purpose such as efficiency.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="kw">class</span> <span class="dt">Monoid</span> a <span class="kw">where</span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="ot">  mempty  ::</span> a</a>
+<a class="sourceLine" id="cb5-3" data-line-number="3"><span class="ot">  mappend ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a</a>
+<a class="sourceLine" id="cb5-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb5-5" data-line-number="5">  <span class="co">-- The Monoid class also provides the following methods:</span></a>
+<a class="sourceLine" id="cb5-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb5-7" data-line-number="7">  <span class="co">-- Fold a list using the monoid.</span></a>
+<a class="sourceLine" id="cb5-8" data-line-number="8">  <span class="co">-- For most types, the default definition for 'mconcat' will be</span></a>
+<a class="sourceLine" id="cb5-9" data-line-number="9">  <span class="co">-- used, but the function is included in the class definition so</span></a>
+<a class="sourceLine" id="cb5-10" data-line-number="10">  <span class="co">-- that an optimized version can be provided for specific types.</span></a>
+<a class="sourceLine" id="cb5-11" data-line-number="11"><span class="ot">  mconcat ::</span> [a] <span class="ot">-&gt;</span> a</a>
+<a class="sourceLine" id="cb5-12" data-line-number="12">  mconcat <span class="fu">=</span> foldr mappend mempty</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="fu">:</span>m <span class="fu">+</span><span class="dt">Data.Monoid</span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb6-3" data-line-number="3">mconcat [<span class="st">&quot;a&quot;</span>, <span class="st">&quot;b&quot;</span>, <span class="st">&quot;c&quot;</span>] <span class="fu">==</span> <span class="st">&quot;abc&quot;</span></a></code></pre></div>
+<p>If you want to implement <code>mconcat</code> yourself, it should obey the law:</p>
+<p><code>mconcat = foldr mappend mempty</code></p>
+<h4 id="implement-a-monoid">Implement a Monoid</h4>
+<p>If you are to write an instance of monoid (or any other typeclasses), it’s up to you to make sure that your implementation follows the laws of monoid (or the typeclass you are making an instance for), it would be nice if GHC could check these laws for us, but for now, it cannot.</p>
+<p>TODO</p>
+<h4 id="other-functions-of-monoid">Other Functions</h4>
+<p>TODO</p>
+<h3 id="semigroup">Semigroup</h3>
+<p>In a nutshell: a semigroup is an algebraic structure consisting of a set, together with an associative binary operation.</p>
+<p>In another word, a semigroup is just like a monoid, except that a semigroup doesn’t have to have an identity element.</p>
+<h4 id="definition-of-semigroup">Definition</h4>
+<p>Typeclass <code>Semigroup</code> is defined in module <code>Data.Semigroup</code>, package <em>base</em>, its minimal complete definition is:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="kw">class</span> <span class="dt">Semigroup</span> a <span class="kw">where</span></a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="ot">  (&lt;&gt;) ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a</a></code></pre></div>
+<p>If data type <code>a</code> is an instance of both semigroup group and monoid, we furthur require that: <code>&lt;&gt;</code> as in semigroup, is equal to <code>mappend</code>, in this way, <code>&lt;&gt;</code> as in semigroup is equal to <code>&lt;&gt;</code> as in monoid.</p>
+<p>If you need both <code>Data.Semigroup</code> and <code>Data.Monoid</code> in your module, just <code>import Data.Semigroup</code> is enough, since <code>Data.Semigroup</code> reexports <code>Data.Monoid</code>.</p>
+<h4 id="examples-of-semigroup">Examples</h4>
+<p>Being a simple and low-demanding structure, (only one operation and one rule), semigroup has many instances, here are some of them.</p>
+<p>Integers, with the binary operation being addition, forms a semigroup, as we can verify:</p>
+<ul>
+<li><code>+</code> is a binary operator on integers, that is, if <code>a</code>, <code>b</code> are integers, <code>a + b</code> is also an integer. This property is referred as, integers are closed under <code>+</code></li>
+<li><code>+</code> is associative: <code>(x + y) + z</code> = <code>x + (y + z)</code>, for all integers <code>x</code>, <code>y</code> and <code>z</code></li>
+</ul>
+<p>Integers, with binary operation being <code>div</code>, does NOT for semigroup, since:</p>
+<ul>
+<li>5 <code>div</code> 0 is not an integer anymore (not closed)</li>
+<li>(15 <code>div</code> 3) <code>div</code> 2 /= 15 <code>div</code> (3 <code>div</code> 2) (not associative)</li>
+</ul>
+<p>Note, integers with the binary operation being multiplication, also forms a semigroup, so the semigroup instance for integers can have multiple implementation, to specify which implementation we are talking about, wee need <a href="../chapters/new-type"><code>newtype</code></a>, for now, don’t worry about it.</p>
+<p><code>Data.List.NonEmpty</code> is an instance of semigroup, but not monoid, since it doesn’t have an identity for concatenation:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode haskell"><code class="sourceCode haskell"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="fu">:</span>m <span class="fu">+</span><span class="dt">Data.Semigroup</span></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="fu">:</span>m <span class="fu">+</span><span class="dt">Data.List.NonEmpty</span></a>
+<a class="sourceLine" id="cb8-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb8-4" data-line-number="4"><span class="kw">let</span> xs <span class="fu">=</span> <span class="dv">1</span> <span class="fu">:|</span> [<span class="dv">2</span>]</a>
+<a class="sourceLine" id="cb8-5" data-line-number="5"><span class="kw">let</span> ys <span class="fu">=</span> <span class="dv">3</span> <span class="fu">:|</span> [<span class="dv">4</span>, <span class="dv">5</span>]</a>
+<a class="sourceLine" id="cb8-6" data-line-number="6"><span class="kw">let</span> zs <span class="fu">=</span> <span class="dv">6</span> <span class="fu">:|</span> [<span class="dv">7</span>, <span class="dv">8</span>]</a>
+<a class="sourceLine" id="cb8-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb8-8" data-line-number="8">print <span class="fu">$</span> (xs <span class="fu">&lt;&gt;</span> ys)</a>
+<a class="sourceLine" id="cb8-9" data-line-number="9">print <span class="fu">$</span> (xs <span class="fu">&lt;&gt;</span> ys) <span class="fu">&lt;&gt;</span> zs <span class="fu">==</span> xs <span class="fu">&lt;&gt;</span> (ys <span class="fu">&lt;&gt;</span> zs)</a></code></pre></div>
+<h4 id="complete-definition-of-semigroup">Complete Definition</h4>
+<p>TODO</p>
+<h4 id="implement-a-semigroup">Implement a Semigroup</h4>
+<p>TODO</p>
+<h4 id="other-functions-of-semigroup">Other Functions</h4>
+<p>TODO</p>
+<h3 id="imperfections">Imperfections</h3>
+<p>You may have noticed that in the above definition of monoid, we dont’ have semigroup as its superclass, as it should be. It turns out that, as of now, (GHC 8.2.1), semigroup is not a superclass of monoid, (though theoretically it is), as you can see from the <a href="https://hackage.haskell.org/package/base-4.10.1.0/docs/src/GHC.Base.html#Monoid">source code</a>, making it so is work-in-progress, see <a href="https://prime.haskell.org/wiki/Libraries/Proposals/SemigroupMonoid">here</a>. Haskell is not perfect, I told you so.</p></section>
+      </article>
+
+    </main>
+  </body>
+</html>
